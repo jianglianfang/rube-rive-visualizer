@@ -87,6 +87,18 @@ export class FileLoader {
         e.target.value = '';
       });
     }
+
+    // Prevent browser from opening dropped files outside the drop zone
+    document.addEventListener('dragover', (e) => {
+      e.preventDefault();
+    });
+    document.addEventListener('drop', (e) => {
+      e.preventDefault();
+      // If dropped outside drop zone but on the page, still try to handle
+      if (e.dataTransfer?.files?.length > 0 && this.dropZone) {
+        this._handleFiles(e.dataTransfer.files);
+      }
+    });
   }
 
   /**
