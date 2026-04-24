@@ -2,7 +2,7 @@
 
 基于 Web 的可视化工具，将 **RUBE 物理编辑器**（.json）与 **Rive 矢量动效**（.riv）通过 MVVM 数据绑定联动，实现物理驱动动画的实时预览。
 
-**[在线演示 →](https://your-username.github.io/rube-rive-visualizer/)**
+**[在线演示 →](https://jianglianfang.github.io/rube-rive-visualizer/)**
 
 ## 功能特性
 

@@ -2,7 +2,7 @@
 
 A web-based visualization tool that bridges **RUBE physics editor** (.json) and **Rive vector animation** (.riv) through MVVM data binding, enabling real-time physics-driven animation preview.
 
-**[Live Demo →](https://your-username.github.io/rube-rive-visualizer/)**
+**[Live Demo →](https://jianglianfang.github.io/rube-rive-visualizer/)**
 
 ## Features
 
