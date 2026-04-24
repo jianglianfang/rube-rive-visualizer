@@ -1,0 +1,15 @@
+{
+  "name": "rube-rive-visualizer-web",
+  "version": "1.0.0",
+  "private": true,
+  "type": "module",
+  "description": "RUBE-Rive Visualizer — Web Mode",
+  "scripts": {
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "devDependencies": {
+    "vitest": "^3.2.1",
+    "fast-check": "^4.1.1"
+  }
+}

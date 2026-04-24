@@ -1,0 +1,122 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+  <meta charset="UTF-8">
+  <meta name="viewport" content="width=device-width, initial-scale=1.0">
+  <title>RUBE-Rive Visualizer</title>
+  <link rel="stylesheet" href="style.css">
+
+  <!-- Rive WASM Canvas Runtime — latest version with full Data Binding support -->
+  <script src="https://unpkg.com/@rive-app/canvas@2.30.0"></script>
+
+  <!-- box2d-wasm: load the UMD entry that exposes globalThis.Box2D -->
+  <script src="https://unpkg.com/box2d-wasm@7.0.0/dist/umd/Box2D.js"></script>
+  <script>
+    // box2d-wasm UMD exposes a factory function as globalThis.Box2D
+    // We wrap it as globalThis.initBox2D so app.js can await it.
+    if (typeof Box2D === 'function') {
+      globalThis.initBox2D = () => Box2D();
+    }
+  </script>
+</head>
+<body>
+  <div id="app">
+    <!-- Header -->
+    <header id="header">
+      <h1>RUBE-Rive Visualizer</h1>
+      <span id="header-subtitle">Web Mode</span>
+    </header>
+
+    <!-- Main content area -->
+    <div id="main">
+      <!-- Canvas area -->
+      <div id="canvas-container">
+        <div id="rive-wrapper">
+          <canvas id="rive-canvas" width="800" height="600"></canvas>
+        </div>
+        <div id="debug-wrapper" class="debug-hidden">
+          <canvas id="debug-canvas" width="800" height="600"></canvas>
+          <div id="debug-label">Physics Debug</div>
+        </div>
+        <canvas id="overlay-canvas" width="800" height="600"></canvas>
+
+        <!-- Drop zone overlay (shown when no files loaded) -->
+        <div id="drop-zone">
+          <div class="drop-zone-content">
+            <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+              <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+              <polyline points="17 8 12 3 7 8"/>
+              <line x1="12" y1="3" x2="12" y2="15"/>
+            </svg>
+            <p>Drag &amp; drop <strong>.json</strong> and <strong>.riv</strong> files here</p>
+            <p class="drop-zone-hint">or click to select files</p>
+          </div>
+          <input type="file" id="file-input" multiple accept=".json,.riv" hidden>
+        </div>
+      </div>
+
+      <!-- Side panel: info + controls -->
+      <aside id="side-panel">
+        <section id="controls">
+          <h2>Simulation</h2>
+          <div class="control-row">
+            <button id="btn-play-pause" title="Play / Pause (Space)">▶ Play</button>
+            <button id="btn-step" title="Step (→)">⏭ Step</button>
+            <button id="btn-reset" title="Reset (R)">↺ Reset</button>
+          </div>
+          <div class="control-row">
+            <label for="speed-slider">Speed:</label>
+            <input type="range" id="speed-slider" min="0.1" max="3.0" step="0.1" value="1.0">
+            <span id="speed-value">1.0×</span>
+          </div>
+          <div class="control-row">
+            <button id="btn-debug" title="Toggle debug mode (D)">⬜ Debug Off</button>
+          </div>
+        </section>
+
+        <section id="info-panel">
+          <h2>Body Info</h2>
+          <div id="info-content">
+            <p class="info-placeholder">Click a body to inspect</p>
+          </div>
+        </section>
+      </aside>
+    </div>
+
+    <!-- Status bar -->
+    <footer id="status-bar">
+      <span id="status-time">Time: 0.00s</span>
+      <span id="status-steps">Steps: 0</span>
+      <span id="status-fps">FPS: 0</span>
+      <span id="status-zoom">Zoom: 100%</span>
+      <span id="status-message">Loading WASM runtimes...</span>
+    </footer>
+
+    <!-- Error overlay -->
+    <div id="error-overlay" class="hidden">
+      <div class="error-box">
+        <h2>⚠ Error</h2>
+        <p id="error-message"></p>
+        <button id="btn-error-dismiss">Dismiss</button>
+        <button id="btn-error-reload">Reload Page</button>
+      </div>
+    </div>
+  </div>
+
+  <script type="module" src="src/app.js"></script>
+  <script>
+    if (window.location.protocol === 'file:') {
+      document.addEventListener('DOMContentLoaded', () => {
+        const dz = document.querySelector('.drop-zone-content');
+        if (dz) {
+          dz.innerHTML = `
+            <p style="color:#ffa726;font-size:1rem;margin-bottom:0.5rem;">⚠ Cannot load via file:// protocol</p>
+            <p style="font-size:0.85rem;">Run: <code style="color:#4fc3f7;">python3 -m http.server 8000 --directory web</code></p>
+            <p style="font-size:0.85rem;">Then open <a href="http://localhost:8000" style="color:#4fc3f7;">http://localhost:8000</a></p>
+          `;
+        }
+      });
+    }
+  </script>
+</body>
+</html>
