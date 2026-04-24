@@ -9,7 +9,7 @@
  * @module debugRenderer
  */
 
-import { PIXEL_RATIO } from './src/models.js';
+import { PIXEL_RATIO } from './models.js';
 
 const COLORS = {
   static: 'rgba(100, 200, 100, 0.7)',

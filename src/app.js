@@ -9,9 +9,9 @@
  * @module app
  */
 
-import { RubeParser } from './src/rubeParser.js';
-import { MVVMBinder } from './src/mvvmBinder.js';
-import { PhysicsSimulator } from './src/physicsSimulator.js';
+import { RubeParser } from './rubeParser.js';
+import { MVVMBinder } from './mvvmBinder.js';
+import { PhysicsSimulator } from './physicsSimulator.js';
 import { FileLoader } from './fileLoader.js';
 import { DebugRenderer } from './debugRenderer.js';
 
