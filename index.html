@@ -25,10 +25,16 @@
     <header id="header">
       <h1>RUBE-Rive Visualizer</h1>
       <span id="header-subtitle">Web Mode</span>
+      <div id="tab-bar">
+        <button class="tab active" data-tab="preview">Preview</button>
+        <button class="tab" data-tab="generator">Generator</button>
+      </div>
     </header>
 
     <!-- Main content area -->
     <div id="main">
+      <!-- Preview Mode -->
+      <div id="preview-container" class="mode-container">
       <!-- Canvas area -->
       <div id="canvas-container">
         <div id="rive-wrapper">
@@ -71,6 +77,7 @@
           </div>
           <div class="control-row">
             <button id="btn-debug" title="Toggle debug mode (D)">⬜ Debug Off</button>
+            <button id="btn-gravity-preview" title="Toggle gravity sensor">🧭 Gravity</button>
           </div>
         </section>
 
@@ -82,6 +89,52 @@
         </section>
       </aside>
     </div>
+    </div><!-- end preview-container -->
+
+    <!-- Generator Mode -->
+    <div id="generator-container" class="mode-container hidden">
+      <div id="generator-main">
+        <div id="generator-canvas-area">
+          <canvas id="generator-canvas" width="800" height="600"></canvas>
+          <!-- Generator drop zone -->
+          <div id="generator-drop-zone">
+            <div class="drop-zone-content">
+              <svg width="48" height="48" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+                <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4"/>
+                <polyline points="17 8 12 3 7 8"/>
+                <line x1="12" y1="3" x2="12" y2="15"/>
+              </svg>
+              <p>Drop a <strong>.riv</strong> file here to generate physics</p>
+              <p class="drop-zone-hint">Single .riv file only</p>
+            </div>
+            <input type="file" id="generator-file-input" accept=".riv" hidden>
+          </div>
+        </div>
+        <aside id="generator-side-panel">
+          <section id="generator-controls">
+            <h2>Generator</h2>
+            <div class="control-row">
+              <button id="btn-gen-play" title="Play / Pause">▶ Play</button>
+              <button id="btn-gen-step" title="Step">⏭ Step</button>
+              <button id="btn-gen-reset" title="Reset">↺ Reset</button>
+            </div>
+            <div class="control-row">
+              <button id="btn-gen-export" title="Export RUBE JSON">📥 Export JSON</button>
+            </div>
+            <div class="control-row">
+              <button id="btn-gen-gravity" title="Toggle gravity sensor">🧭 Gravity</button>
+              <button id="btn-gen-debug" title="Toggle debug">⬜ Debug</button>
+            </div>
+          </section>
+          <section id="generator-editor-section">
+            <h2>Physics Editor</h2>
+            <div id="generator-editor"></div>
+          </section>
+          <div id="generator-status" class="info-placeholder"></div>
+        </aside>
+      </div>
+    </div><!-- end generator-container -->
+    </div><!-- end main -->
 
     <!-- Status bar -->
     <footer id="status-bar">

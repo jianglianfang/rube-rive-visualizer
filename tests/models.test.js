@@ -10,7 +10,9 @@ import {
   createBodyState,
   createTransformData,
   createBindingRecord,
-} from '../models.js';
+  createBoundComponent,
+  createAnalysisResult,
+} from '../src/models.js';
 
 describe('Constants', () => {
   it('PIXEL_RATIO should be 32.0', () => {
@@ -169,5 +171,85 @@ describe('createBindingRecord', () => {
     expect(b.vmPropertyName).toBe("t1");
     expect(b.isActor).toBe(true);
     expect(b.actorName).toBe("a1");
+  });
+});
+
+describe('createBoundComponent', () => {
+  it('should create a default BoundComponent', () => {
+    const bc = createBoundComponent();
+    expect(bc.vmPropertyName).toBe('');
+    expect(bc.componentName).toBe('');
+    expect(bc.center).toEqual({ x: 0, y: 0 });
+    expect(bc.vertices).toEqual([]);
+    expect(bc.width).toBe(0);
+    expect(bc.height).toBe(0);
+    expect(bc.isBoundingBox).toBe(true);
+  });
+
+  it('should accept overrides', () => {
+    const bc = createBoundComponent({
+      vmPropertyName: 't1',
+      componentName: 'star',
+      center: createVec2(100, 200),
+      vertices: [createVec2(90, 190), createVec2(110, 190), createVec2(110, 210), createVec2(90, 210)],
+      width: 20,
+      height: 20,
+      isBoundingBox: false,
+    });
+    expect(bc.vmPropertyName).toBe('t1');
+    expect(bc.componentName).toBe('star');
+    expect(bc.center).toEqual({ x: 100, y: 200 });
+    expect(bc.vertices).toHaveLength(4);
+    expect(bc.width).toBe(20);
+    expect(bc.height).toBe(20);
+    expect(bc.isBoundingBox).toBe(false);
+  });
+
+  it('should create independent default center (not shared reference)', () => {
+    const bc1 = createBoundComponent();
+    const bc2 = createBoundComponent();
+    bc1.center.x = 99;
+    expect(bc2.center.x).toBe(0);
+  });
+
+  it('should create independent default vertices array', () => {
+    const bc1 = createBoundComponent();
+    const bc2 = createBoundComponent();
+    bc1.vertices.push(createVec2(1, 2));
+    expect(bc2.vertices).toEqual([]);
+  });
+});
+
+describe('createAnalysisResult', () => {
+  it('should create a default AnalysisResult', () => {
+    const ar = createAnalysisResult();
+    expect(ar.components).toEqual([]);
+    expect(ar.artboardWidth).toBe(0);
+    expect(ar.artboardHeight).toBe(0);
+    expect(ar.warnings).toEqual([]);
+  });
+
+  it('should accept overrides', () => {
+    const comp = createBoundComponent({ vmPropertyName: 't1' });
+    const ar = createAnalysisResult({
+      components: [comp],
+      artboardWidth: 390,
+      artboardHeight: 450,
+      warnings: ['Component "bg" has no path data'],
+    });
+    expect(ar.components).toHaveLength(1);
+    expect(ar.components[0].vmPropertyName).toBe('t1');
+    expect(ar.artboardWidth).toBe(390);
+    expect(ar.artboardHeight).toBe(450);
+    expect(ar.warnings).toHaveLength(1);
+  });
+
+  it('should create independent default arrays', () => {
+    const ar1 = createAnalysisResult();
+    const ar2 = createAnalysisResult();
+    ar1.components.push(createBoundComponent());
+    ar1.warnings.push('test warning');
+    expect(ar2.components).toEqual([]);
+    expect(ar2.warnings).toEqual([]);
   });
 });

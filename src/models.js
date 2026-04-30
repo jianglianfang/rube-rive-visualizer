@@ -308,3 +308,81 @@ export function createBindingRecord(overrides = {}) {
     ...overrides,
   };
 }
+
+// === Generator Mode Types ===
+
+/**
+ * A Rive component bound to a ViewModel transform property.
+ * Extracted by RiveAnalyzer.
+ * @typedef {Object} BoundComponent
+ * @property {string} vmPropertyName - ViewModel property name (e.g., "t1")
+ * @property {string} componentName - Rive artboard node name
+ * @property {Vec2} center - Component center in Artboard_Space (pixels)
+ * @property {Vec2[]} vertices - Outline vertices in Artboard_Space (pixels)
+ * @property {number} width - Bounding box width (pixels)
+ * @property {number} height - Bounding box height (pixels)
+ * @property {boolean} isBoundingBox - true if shape is AABB fallback
+ */
+
+/**
+ * Result of Rive artboard analysis.
+ * @typedef {Object} AnalysisResult
+ * @property {BoundComponent[]} components
+ * @property {number} artboardWidth - pixels
+ * @property {number} artboardHeight - pixels
+ * @property {string[]} warnings
+ */
+
+/**
+ * Physics parameter set for a body (used by PhysicsEditor).
+ * @typedef {Object} BodyPhysicsParams
+ * @property {number} density
+ * @property {number} friction
+ * @property {number} restitution
+ * @property {number} gravityScale
+ */
+
+/**
+ * Gravity sensor state.
+ * @typedef {Object} GravitySensorState
+ * @property {boolean} enabled
+ * @property {number} currentAngle - radians, 0 = downward (-Y in world)
+ * @property {number} targetAngle - radians, interpolation target
+ * @property {number} magnitude - m/s², default 10
+ * @property {'auto'|'mouse'} mode - current control mode
+ */
+
+// === Generator Mode Factory Functions ===
+
+/**
+ * Create a default BoundComponent.
+ * @param {Partial<BoundComponent>} [overrides={}]
+ * @returns {BoundComponent}
+ */
+export function createBoundComponent(overrides = {}) {
+  return {
+    vmPropertyName: '',
+    componentName: '',
+    center: createVec2(),
+    vertices: [],
+    width: 0,
+    height: 0,
+    isBoundingBox: true,
+    ...overrides,
+  };
+}
+
+/**
+ * Create a default AnalysisResult.
+ * @param {Partial<AnalysisResult>} [overrides={}]
+ * @returns {AnalysisResult}
+ */
+export function createAnalysisResult(overrides = {}) {
+  return {
+    components: [],
+    artboardWidth: 0,
+    artboardHeight: 0,
+    warnings: [],
+    ...overrides,
+  };
+}

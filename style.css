@@ -57,10 +57,54 @@ body {
   color: var(--text-secondary);
 }
 
+/* --- Tab Bar --- */
+
+#tab-bar {
+  display: flex;
+  gap: 0.25rem;
+  margin-left: auto;
+}
+
+#tab-bar .tab {
+  padding: 0.3rem 1rem;
+  font-size: 0.85rem;
+  background: transparent;
+  color: var(--text-secondary);
+  border: 1px solid transparent;
+  border-bottom: none;
+  border-radius: 4px 4px 0 0;
+  cursor: pointer;
+  transition: background 0.15s, color 0.15s;
+}
+
+#tab-bar .tab:hover {
+  background: var(--accent-dim);
+  color: var(--text-primary);
+}
+
+#tab-bar .tab.active {
+  background: var(--bg-primary);
+  color: var(--accent);
+  border-color: var(--border);
+  font-weight: 600;
+}
+
 #main {
   display: flex;
   flex: 1;
   overflow: hidden;
+}
+
+/* --- Mode containers --- */
+
+.mode-container {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+.mode-container.hidden {
+  display: none;
 }
 
 /* --- Canvas area --- */
@@ -378,11 +422,172 @@ body {
   #main {
     flex-direction: column;
   }
-  #side-panel {
+  #side-panel,
+  #generator-side-panel {
     width: 100%;
     min-width: unset;
     max-height: 200px;
     border-left: none;
     border-top: 1px solid var(--border);
   }
+}
+
+/* --- Generator Mode --- */
+
+#generator-main {
+  display: flex;
+  flex: 1;
+  overflow: hidden;
+}
+
+#generator-canvas-area {
+  flex: 1;
+  position: relative;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: var(--bg-canvas);
+  overflow: hidden;
+}
+
+#generator-canvas {
+  display: block;
+  max-width: 100%;
+  max-height: 100%;
+}
+
+#generator-drop-zone {
+  position: absolute;
+  inset: 0;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  background: rgba(15, 15, 35, 0.85);
+  cursor: pointer;
+  z-index: 10;
+  transition: background 0.2s;
+}
+
+#generator-drop-zone.hidden {
+  display: none;
+}
+
+#generator-drop-zone.drag-over {
+  background: rgba(79, 195, 247, 0.12);
+  outline: 3px dashed var(--accent);
+  outline-offset: -12px;
+}
+
+#generator-side-panel {
+  width: 260px;
+  min-width: 200px;
+  background: var(--bg-secondary);
+  border-left: 1px solid var(--border);
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
+}
+
+#generator-side-panel h2 {
+  font-size: 0.85rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+  color: var(--text-secondary);
+  padding: 0.75rem 0.75rem 0.4rem;
+  border-bottom: 1px solid var(--border);
+}
+
+#generator-controls {
+  padding-bottom: 0.5rem;
+  border-bottom: 1px solid var(--border);
+}
+
+#generator-editor {
+  padding: 0.5rem 0.75rem;
+  font-size: 0.8rem;
+}
+
+#generator-status {
+  padding: 0.5rem 0.75rem;
+  font-size: 0.8rem;
+  color: var(--text-secondary);
+}
+
+/* --- Physics Editor styles --- */
+
+.editor-section {
+  margin-bottom: 0.5rem;
+}
+
+.editor-section h3 {
+  font-size: 0.8rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+  padding: 0.4rem 0;
+  border-bottom: 1px solid var(--border);
+  margin-bottom: 0.3rem;
+}
+
+.editor-row {
+  display: flex;
+  gap: 0.5rem;
+  padding: 0.2rem 0;
+}
+
+.editor-field {
+  display: flex;
+  align-items: center;
+  gap: 0.3rem;
+  padding: 0.2rem 0;
+  flex-wrap: wrap;
+}
+
+.editor-field label {
+  font-size: 0.75rem;
+  color: var(--text-secondary);
+  min-width: 4em;
+}
+
+.editor-field input[type="number"] {
+  width: 5em;
+  padding: 0.2rem 0.3rem;
+  font-size: 0.8rem;
+  background: var(--bg-canvas);
+  color: var(--text-primary);
+  border: 1px solid var(--border);
+  border-radius: 3px;
+}
+
+.editor-field input[type="number"].invalid {
+  border-color: #e53935;
+}
+
+.editor-field .input-error {
+  font-size: 0.7rem;
+  color: #e53935;
+}
+
+.body-list {
+  list-style: none;
+  padding: 0;
+  margin: 0;
+}
+
+.body-list-item {
+  padding: 0.3rem 0.5rem;
+  font-size: 0.8rem;
+  cursor: pointer;
+  border-bottom: 1px solid rgba(51, 51, 51, 0.5);
+  transition: background 0.1s;
+}
+
+.body-list-item:hover {
+  background: var(--accent-dim);
+}
+
+.body-list-item.selected {
+  background: var(--accent-dim);
+  color: var(--accent);
+  border-left: 3px solid var(--accent);
 }

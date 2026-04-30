@@ -9,9 +9,9 @@
  * @module app
  */
 
-import { RubeParser } from './rubeParser.js';
-import { MVVMBinder } from './mvvmBinder.js';
-import { PhysicsSimulator } from './physicsSimulator.js';
+import { RubeParser } from './src/rubeParser.js';
+import { MVVMBinder } from './src/mvvmBinder.js';
+import { PhysicsSimulator } from './src/physicsSimulator.js';
 import { FileLoader } from './fileLoader.js';
 import { DebugRenderer } from './debugRenderer.js';
 
@@ -1004,6 +1004,200 @@ async function boot() {
 
   // Mouse/keyboard interaction
   app.setupInteraction();
+
+  // === Tab switching ===
+  setupTabSwitching(app);
+}
+
+// ------------------------------------------------------------------
+// Tab switching (Generator mode)
+// ------------------------------------------------------------------
+
+/**
+ * Set up tab switching between Preview and Generator modes.
+ * @param {RubeRiveApp} previewApp - The existing Preview mode app
+ */
+function setupTabSwitching(previewApp) {
+  const previewContainer = document.getElementById('preview-container');
+  const generatorContainer = document.getElementById('generator-container');
+  const tabs = document.querySelectorAll('#tab-bar .tab');
+
+  if (!previewContainer || !generatorContainer || tabs.length === 0) return;
+
+  let generatorApp = null;
+  let generatorInitialized = false;
+
+  function switchTab(tabName) {
+    // Update tab active states
+    for (const tab of tabs) {
+      if (tab.dataset.tab === tabName) {
+        tab.classList.add('active');
+      } else {
+        tab.classList.remove('active');
+      }
+    }
+
+    // Show/hide containers
+    if (tabName === 'preview') {
+      previewContainer.classList.remove('hidden');
+      generatorContainer.classList.add('hidden');
+    } else if (tabName === 'generator') {
+      previewContainer.classList.add('hidden');
+      generatorContainer.classList.remove('hidden');
+
+      // Lazy init GeneratorApp
+      if (!generatorInitialized) {
+        generatorInitialized = true;
+        initGeneratorMode();
+      }
+    }
+  }
+
+  async function initGeneratorMode() {
+    try {
+      const { GeneratorApp } = await import('./generatorApp.js');
+      const canvas = document.getElementById('generator-canvas');
+      generatorApp = new GeneratorApp(canvas);
+      await generatorApp.init();
+
+      // Wire generator drop zone
+      wireGeneratorDropZone(generatorApp);
+
+      // Wire generator controls
+      wireGeneratorControls(generatorApp);
+
+      console.info('[Tab] Generator mode initialized');
+    } catch (err) {
+      console.error('[Tab] Generator init failed:', err);
+    }
+  }
+
+  // Wire tab click events
+  for (const tab of tabs) {
+    tab.addEventListener('click', () => {
+      switchTab(tab.dataset.tab);
+    });
+  }
+
+  // Wire preview gravity sensor button
+  const btnGravityPreview = document.getElementById('btn-gravity-preview');
+  if (btnGravityPreview) {
+    // Preview mode gravity sensor (shared module)
+    let previewGravitySensor = null;
+    btnGravityPreview.addEventListener('click', async () => {
+      if (!previewGravitySensor) {
+        const { GravitySensor } = await import('./gravitySensor.js');
+        previewGravitySensor = new GravitySensor((gx, gy) => {
+          // Update preview physics gravity if available
+          if (previewApp.simulator && previewApp.scene) {
+            previewApp.scene.gravity.x = gx;
+            previewApp.scene.gravity.y = gy;
+          }
+        });
+      }
+      const enabled = previewGravitySensor.toggle();
+      btnGravityPreview.textContent = enabled ? '🧭 Gravity ON' : '🧭 Gravity';
+    });
+  }
+}
+
+/**
+ * Wire the generator mode drop zone for .riv files.
+ */
+function wireGeneratorDropZone(generatorApp) {
+  const dropZone = document.getElementById('generator-drop-zone');
+  const fileInput = document.getElementById('generator-file-input');
+
+  if (!dropZone) return;
+
+  dropZone.addEventListener('dragover', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    dropZone.classList.add('drag-over');
+  });
+
+  dropZone.addEventListener('dragleave', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    dropZone.classList.remove('drag-over');
+  });
+
+  dropZone.addEventListener('drop', (e) => {
+    e.preventDefault();
+    e.stopPropagation();
+    dropZone.classList.remove('drag-over');
+
+    const files = e.dataTransfer.files;
+    if (files.length > 0) {
+      const rivFile = Array.from(files).find(f => f.name.toLowerCase().endsWith('.riv'));
+      if (rivFile) {
+        dropZone.classList.add('hidden');
+        generatorApp.loadRivFile(rivFile).catch(err => {
+          dropZone.classList.remove('hidden');
+          console.error('[Generator] Load failed:', err);
+        });
+      }
+    }
+  });
+
+  dropZone.addEventListener('click', () => {
+    if (fileInput) fileInput.click();
+  });
+
+  if (fileInput) {
+    fileInput.addEventListener('change', (e) => {
+      const file = e.target.files[0];
+      if (file) {
+        dropZone.classList.add('hidden');
+        generatorApp.loadRivFile(file).catch(err => {
+          dropZone.classList.remove('hidden');
+          console.error('[Generator] Load failed:', err);
+        });
+      }
+      e.target.value = '';
+    });
+  }
+}
+
+/**
+ * Wire generator mode control buttons.
+ */
+function wireGeneratorControls(generatorApp) {
+  const btnPlay = document.getElementById('btn-gen-play');
+  const btnStep = document.getElementById('btn-gen-step');
+  const btnReset = document.getElementById('btn-gen-reset');
+  const btnExport = document.getElementById('btn-gen-export');
+  const btnGravity = document.getElementById('btn-gen-gravity');
+  const btnDebug = document.getElementById('btn-gen-debug');
+
+  if (btnPlay) btnPlay.addEventListener('click', () => {
+    if (!generatorApp.running) {
+      generatorApp.start();
+      btnPlay.textContent = '⏸ Pause';
+    } else {
+      generatorApp.pause();
+      btnPlay.textContent = generatorApp.paused ? '▶ Play' : '⏸ Pause';
+    }
+  });
+
+  if (btnStep) btnStep.addEventListener('click', () => generatorApp.stepOnce());
+  if (btnReset) btnReset.addEventListener('click', () => {
+    generatorApp.reset();
+    if (btnPlay) btnPlay.textContent = '▶ Play';
+  });
+
+  if (btnExport) btnExport.addEventListener('click', () => {
+    generatorApp.exportJSON();
+  });
+
+  if (btnGravity) btnGravity.addEventListener('click', () => {
+    const enabled = generatorApp.toggleGravitySensor();
+    btnGravity.textContent = enabled ? '🧭 Gravity ON' : '🧭 Gravity';
+  });
+
+  if (btnDebug) btnDebug.addEventListener('click', () => {
+    generatorApp.toggleDebug();
+  });
 }
 
 // Auto-boot when DOM is ready
