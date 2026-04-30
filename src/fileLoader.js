@@ -94,8 +94,11 @@ export class FileLoader {
     });
     document.addEventListener('drop', (e) => {
       e.preventDefault();
-      // If dropped outside drop zone but on the page, still try to handle
-      if (e.dataTransfer?.files?.length > 0 && this.dropZone) {
+      // Only handle if this drop zone is visible (not hidden) and the drop
+      // didn't land on another drop zone (e.g., Generator mode's drop zone)
+      if (e.dataTransfer?.files?.length > 0 && this.dropZone
+          && !this.dropZone.classList.contains('hidden')
+          && !e.target.closest('#generator-drop-zone')) {
         this._handleFiles(e.dataTransfer.files);
       }
     });

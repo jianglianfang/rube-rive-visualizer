@@ -9,11 +9,12 @@
  * @module app
  */
 
-import { RubeParser } from './src/rubeParser.js';
-import { MVVMBinder } from './src/mvvmBinder.js';
-import { PhysicsSimulator } from './src/physicsSimulator.js';
+import { RubeParser } from './rubeParser.js';
+import { MVVMBinder } from './mvvmBinder.js';
+import { PhysicsSimulator } from './physicsSimulator.js';
 import { FileLoader } from './fileLoader.js';
 import { DebugRenderer } from './debugRenderer.js';
+import { GravitySensor } from './gravitySensor.js';
 
 /**
  * Main application controller.
@@ -30,6 +31,7 @@ export class RubeRiveApp {
     this.simulator = null;
     this.binder = new MVVMBinder();
     this.debugRenderer = new DebugRenderer();
+    this.gravitySensor = null; // initialized after box2d-wasm loads
     this.bindings = [];
     this.scene = null;
 
@@ -66,6 +68,8 @@ export class RubeRiveApp {
       if (typeof globalThis.initBox2D === 'function') {
         const box2D = await globalThis.initBox2D();
         this.simulator = new PhysicsSimulator(box2D);
+        this._box2D = box2D; // store for gravity updates
+        this._initGravitySensor();
         this._updateStatus('Ready — drop files to begin');
       } else {
         this._updateStatus('Ready (no physics engine — drop files to begin)');
@@ -400,6 +404,11 @@ export class RubeRiveApp {
     if (!this.running) return;
 
     if (!this.paused && this.simulator) {
+      // Update gravity sensor (smooth direction interpolation)
+      if (this.gravitySensor && this.gravitySensor.enabled) {
+        this.gravitySensor.update(1 / 60);
+      }
+
       const bodyStates = this.simulator.step(this.speed);
       this._applyTransforms(bodyStates);
 
@@ -824,6 +833,50 @@ export class RubeRiveApp {
   }
 
   // ------------------------------------------------------------------
+  // Gravity Sensor
+  // ------------------------------------------------------------------
+
+  /**
+   * Initialize gravity sensor for Preview mode.
+   * Called after box2d-wasm is loaded.
+   */
+  _initGravitySensor() {
+    this.gravitySensor = new GravitySensor((gx, gy) => {
+      // Update Box2D world gravity in real-time
+      if (this.simulator && this.simulator._world && this._box2D) {
+        const b2 = this._box2D;
+        const grav = new b2.b2Vec2(gx, gy);
+        this.simulator._world.SetGravity(grav);
+        b2.destroy(grav);
+
+        // Wake up all bodies so they respond to the new gravity
+        for (const body of this.simulator._bodies) {
+          body.SetAwake(true);
+        }
+      }
+    });
+    // Store original gravity for restore
+    this._originalGravity = { x: 0, y: -10 };
+  }
+
+  /**
+   * Toggle gravity sensor on/off.
+   * @returns {boolean} new enabled state
+   */
+  toggleGravitySensor() {
+    if (!this.gravitySensor) return false;
+    const enabled = this.gravitySensor.toggle();
+    if (!enabled && this.scene) {
+      // Restore original gravity
+      this.gravitySensor.restore(
+        this.scene.gravity.x,
+        this.scene.gravity.y
+      );
+    }
+    return enabled;
+  }
+
+  // ------------------------------------------------------------------
   // UI helpers
   // ------------------------------------------------------------------
 
@@ -1082,20 +1135,8 @@ function setupTabSwitching(previewApp) {
   // Wire preview gravity sensor button
   const btnGravityPreview = document.getElementById('btn-gravity-preview');
   if (btnGravityPreview) {
-    // Preview mode gravity sensor (shared module)
-    let previewGravitySensor = null;
-    btnGravityPreview.addEventListener('click', async () => {
-      if (!previewGravitySensor) {
-        const { GravitySensor } = await import('./gravitySensor.js');
-        previewGravitySensor = new GravitySensor((gx, gy) => {
-          // Update preview physics gravity if available
-          if (previewApp.simulator && previewApp.scene) {
-            previewApp.scene.gravity.x = gx;
-            previewApp.scene.gravity.y = gy;
-          }
-        });
-      }
-      const enabled = previewGravitySensor.toggle();
+    btnGravityPreview.addEventListener('click', () => {
+      const enabled = previewApp.toggleGravitySensor();
       btnGravityPreview.textContent = enabled ? '🧭 Gravity ON' : '🧭 Gravity';
     });
   }
