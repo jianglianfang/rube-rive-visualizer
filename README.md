@@ -1,5 +1,7 @@
 # RUBE-Rive Visualizer & Generator
 
+[中文文档](README_CN.md)
+
 A web-based tool for **previewing** and **generating** physics-driven Rive animations. Bridges RUBE physics editor (.json) and Rive vector animation (.riv) through MVVM data binding.
 
 **[Live Demo →](https://jianglianfang.github.io/rube-rive-visualizer/)**
