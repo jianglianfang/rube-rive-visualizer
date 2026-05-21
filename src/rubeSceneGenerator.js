@@ -131,30 +131,38 @@ export class RubeSceneGenerator {
    * @returns {import('./models.js').RubeBody}
    */
   _generateBoundary(artboardWidth, artboardHeight) {
-    // Convert the four artboard corners to World_Space
-    const topLeft = this.artboardToWorld(0, 0, artboardWidth, artboardHeight);
-    const topRight = this.artboardToWorld(artboardWidth, 0, artboardWidth, artboardHeight);
-    const bottomRight = this.artboardToWorld(artboardWidth, artboardHeight, artboardWidth, artboardHeight);
-    const bottomLeft = this.artboardToWorld(0, artboardHeight, artboardWidth, artboardHeight);
+    // Generate inscribed circle boundary for a square artboard.
+    // Radius = half of the shorter side (inscribed in the square).
+    // Uses a chain shape polygon approximation (Box2D 2.3.x compatible).
+    const radius = Math.min(artboardWidth, artboardHeight) / 2 / PIXEL_RATIO;
+    const segments = 64; // enough for smooth circle
 
-    // Chain vertices forming a closed rectangle
-    const chainVertices = [
-      createVec2(topLeft.x, topLeft.y),
-      createVec2(topRight.x, topRight.y),
-      createVec2(bottomRight.x, bottomRight.y),
-      createVec2(bottomLeft.x, bottomLeft.y),
-      createVec2(topLeft.x, topLeft.y), // close the chain
-    ];
+    // Chain vertices forming a closed circle (in world coordinates, centered at origin)
+    // Winding: clockwise so chain normals point inward (keeps objects inside)
+    const chainVertices = [];
+    for (let i = 0; i <= segments; i++) {
+      const angle = -(i / segments) * Math.PI * 2; // clockwise
+      chainVertices.push(createVec2(
+        radius * Math.cos(angle),
+        radius * Math.sin(angle),
+      ));
+    }
 
     const chainFixture = {
       name: '',
       shape: {
         shapeType: 'chain',
         chainVertices,
-        hasPrevVertex: false,
-        hasNextVertex: false,
-        prevVertex: createVec2(),
-        nextVertex: createVec2(),
+        hasPrevVertex: true,
+        hasNextVertex: true,
+        prevVertex: createVec2(
+          radius * Math.cos((1 / segments) * Math.PI * 2),
+          radius * Math.sin((1 / segments) * Math.PI * 2),
+        ),
+        nextVertex: createVec2(
+          radius * Math.cos((-1 / segments) * Math.PI * 2),
+          radius * Math.sin((-1 / segments) * Math.PI * 2),
+        ),
       },
       density: 0,
       friction: DEFAULT_FRICTION,
@@ -168,10 +176,10 @@ export class RubeSceneGenerator {
       name: 'boundary',
       index: 0, // will be set by caller
       bodyType: BodyType.STATIC,
-      position: createVec2(0, 0),
+      position: createVec2(0, 0), // centered at world origin
       angle: 0,
       fixtures: [chainFixture],
-      customProperties: {}, // no "VM" property for boundary
+      customProperties: {},
     });
   }
 
@@ -195,7 +203,7 @@ export class RubeSceneGenerator {
       artboardHeight,
     );
 
-    // Convert vertices to body-local coordinates
+    // Convert vertices to body-local coordinates (relative to center)
     const localVertices = this.artboardVerticesToLocal(
       component.vertices,
       component.center,
@@ -243,6 +251,7 @@ export class RubeSceneGenerator {
       fixtures,
       customProperties: {
         VM: component.vmPropertyName,
+        shapeType: component.shapeType || 'rectangle',
       },
     });
   }

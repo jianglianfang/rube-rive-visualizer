@@ -568,6 +568,25 @@ body {
   color: #e53935;
 }
 
+.editor-field input[type="range"] {
+  flex: 1;
+  min-width: 80px;
+  height: 4px;
+  accent-color: var(--accent, #4fc3f7);
+  cursor: pointer;
+}
+
+.editor-field .slider-value {
+  font-size: 0.75rem;
+  color: var(--text-primary);
+  min-width: 2em;
+  text-align: right;
+}
+
+.editor-slider label {
+  min-width: 8em;
+}
+
 .body-list {
   list-style: none;
   padding: 0;

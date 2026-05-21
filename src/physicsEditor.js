@@ -13,8 +13,10 @@ export class PhysicsEditor {
    * @param {string} panelContainerId - DOM element ID for the editor panel
    * @param {Function} onParamChange - Callback: (bodyIndex, paramName, value) => void
    * @param {Function} onGravityChange - Callback: (gx, gy) => void
+   * @param {Function} [onPrecisionChange] - Callback: (bodyIndex, {ellipseSegments, curveSegments}) => void
+   * @param {Function} [onBodySelect] - Callback: (bodyIndex) => void
    */
-  constructor(panelContainerId, onParamChange, onGravityChange) {
+  constructor(panelContainerId, onParamChange, onGravityChange, onPrecisionChange, onBodySelect) {
     /** @private */
     this._containerId = panelContainerId;
     /** @private */
@@ -26,11 +28,17 @@ export class PhysicsEditor {
     /** @private */
     this._onGravityChange = onGravityChange || (() => {});
     /** @private */
+    this._onPrecisionChange = onPrecisionChange || (() => {});
+    /** @private */
+    this._onBodySelect = onBodySelect || (() => {});
+    /** @private */
     this._scene = null;
     /** @private */
     this._selectedBodyIndex = null;
     /** @private */
     this._dynamicBodies = [];
+    /** @private - per-body precision overrides: Map<bodyIndex, {ellipseSegments, curveSegments}> */
+    this._precisionMap = new Map();
   }
 
   /**
@@ -134,6 +142,7 @@ export class PhysicsEditor {
         li.dataset.bodyIndex = body.index;
         li.addEventListener('click', () => {
           this._selectedBodyIndex = body.index;
+          this._onBodySelect(body.index);
           this._render();
         });
         list.appendChild(li);
@@ -174,6 +183,35 @@ export class PhysicsEditor {
           paramSection.appendChild(gsInput);
         }
         container.appendChild(paramSection);
+
+        // Shape Detail slider — always show for dynamic bodies
+        try {
+          const precisionSection = document.createElement('div');
+          precisionSection.className = 'editor-section';
+          precisionSection.innerHTML = '<h3>Shape Detail</h3>';
+
+          const currentPrec = this._precisionMap.get(this._selectedBodyIndex) || {
+            ellipseSegments: 12,
+            curveSegments: 4,
+          };
+
+          const detail = currentPrec.ellipseSegments;
+          const detailSlider = this._createSliderInput(
+            'precision-detail', 'Vertices:', detail, 3, 100, 1,
+            (val) => {
+              const prec = {
+                ellipseSegments: val,
+                curveSegments: Math.max(2, Math.round(val / 3)),
+              };
+              this._precisionMap.set(this._selectedBodyIndex, prec);
+              this._onPrecisionChange(this._selectedBodyIndex, { ...prec });
+            }
+          );
+          precisionSection.appendChild(detailSlider);
+          container.appendChild(precisionSection);
+        } catch (e) {
+          console.error('[PhysicsEditor] Precision section render failed:', e);
+        }
       }
     }
   }
@@ -216,6 +254,46 @@ export class PhysicsEditor {
     wrapper.appendChild(lbl);
     wrapper.appendChild(input);
     wrapper.appendChild(errorSpan);
+    return wrapper;
+  }
+
+  /**
+   * Create a labeled range slider with value display.
+   * @private
+   */
+  _createSliderInput(id, label, value, min, max, step, onChange) {
+    const wrapper = document.createElement('div');
+    wrapper.className = 'editor-field editor-slider';
+
+    const lbl = document.createElement('label');
+    lbl.htmlFor = id;
+    lbl.textContent = label;
+
+    const input = document.createElement('input');
+    input.type = 'range';
+    input.id = id;
+    input.value = value;
+    input.min = min;
+    input.max = max;
+    input.step = step;
+
+    const valueSpan = document.createElement('span');
+    valueSpan.className = 'slider-value';
+    valueSpan.textContent = value;
+
+    input.addEventListener('change', () => {
+      const val = Number(input.value);
+      valueSpan.textContent = val;
+      onChange(val);
+    });
+
+    input.addEventListener('input', () => {
+      valueSpan.textContent = input.value;
+    });
+
+    wrapper.appendChild(lbl);
+    wrapper.appendChild(input);
+    wrapper.appendChild(valueSpan);
     return wrapper;
   }
 }

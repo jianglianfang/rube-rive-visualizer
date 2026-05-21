@@ -364,10 +364,12 @@ export function createBoundComponent(overrides = {}) {
     vmPropertyName: '',
     componentName: '',
     center: createVec2(),
+    origin: createVec2(), // Rive anchor point (NestedArtboard position)
     vertices: [],
     width: 0,
     height: 0,
     isBoundingBox: true,
+    shapeType: 'rectangle', // 'rectangle' | 'ellipse' | 'curve' | 'roundedRect'
     ...overrides,
   };
 }
