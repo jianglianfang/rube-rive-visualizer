@@ -1108,7 +1108,7 @@ function setupTabSwitching(previewApp) {
 
   async function initGeneratorMode() {
     try {
-      const { GeneratorApp } = await import('./generatorApp.js?v=5');
+      const { GeneratorApp } = await import('./generatorApp.js');
       const canvas = document.getElementById('generator-canvas');
       generatorApp = new GeneratorApp(canvas);
       await generatorApp.init();

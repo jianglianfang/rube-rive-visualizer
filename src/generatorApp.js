@@ -10,8 +10,8 @@
 
 import { RiveAnalyzer, validateRivExtension } from './riveAnalyzer.js';
 import { ConvexDecomposer } from './convexDecomposer.js';
-import { RubeSceneGenerator } from './rubeSceneGenerator.js?v=2';
-import { PhysicsEditor } from './physicsEditor.js?v=4';
+import { RubeSceneGenerator } from './rubeSceneGenerator.js';
+import { PhysicsEditor } from './physicsEditor.js';
 import { GravitySensor } from './gravitySensor.js';
 import { PhysicsSimulator } from './physicsSimulator.js';
 import { MVVMBinder } from './mvvmBinder.js';
