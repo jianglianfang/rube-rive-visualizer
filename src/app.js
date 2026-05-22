@@ -1107,10 +1107,19 @@ function setupTabSwitching(previewApp) {
   }
 
   async function initGeneratorMode() {
+    const statusEl = document.getElementById('generator-status');
+    const dropZone = document.getElementById('generator-drop-zone');
+    const dropContent = dropZone?.querySelector('.drop-zone-content p');
+
+    // Show loading on the drop zone itself (most visible area)
+    if (dropContent) dropContent.innerHTML = '⏳ Loading physics engine...';
+
     try {
       const { GeneratorApp } = await import('./generatorApp.js');
       const canvas = document.getElementById('generator-canvas');
       generatorApp = new GeneratorApp(canvas);
+
+      if (dropContent) dropContent.innerHTML = '⏳ Initializing Box2D (WASM)...';
       await generatorApp.init();
 
       // Wire generator drop zone
@@ -1119,8 +1128,13 @@ function setupTabSwitching(previewApp) {
       // Wire generator controls
       wireGeneratorControls(generatorApp);
 
+      // Restore drop zone text
+      if (dropContent) dropContent.innerHTML = 'Drop a <strong>.riv</strong> file here to generate physics';
+      if (statusEl) statusEl.textContent = 'Ready';
       console.info('[Tab] Generator mode initialized');
     } catch (err) {
+      if (dropContent) dropContent.innerHTML = `❌ Init failed: ${err.message}`;
+      if (statusEl) statusEl.textContent = `Init failed: ${err.message}`;
       console.error('[Tab] Generator init failed:', err);
     }
   }
